@@ -12,7 +12,7 @@ class FDiscordGameSDKModule : public IModuleInterface
 {
 
 private:
-	UDiscordState mDiscord;
+	TSharedPtr<UDiscordState> mDiscord;
 
 public:
 
@@ -41,9 +41,10 @@ public:
 		return FModuleManager::Get().IsModuleLoaded("DiscordGameSDK");
 	}
 
-	UDiscordState& getState()
+	
+	TWeakPtr<UDiscordState> getState()
 	{
-		return mDiscord;
+		return TWeakPtr<UDiscordState>(mDiscord);
 	}
 	
 };

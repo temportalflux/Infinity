@@ -2,28 +2,33 @@
 
 #include "CoreMinimal.h"
 #include "./discordsdk/discord.h"
+#include "DiscordEnums.h"
 #include "DiscordState.generated.h"
 
-DECLARE_MULTICAST_DELEGATE(FOnDiscordSimple);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDiscordSimple);
 
 UCLASS()
 class UDiscordState : public UObject
 {
 	GENERATED_BODY()
 
-	TSharedPtr<discord::Core> mpCore;
+	discord::Core *mpCore;
 	discord::User mCurrentUser;
 
 public:
+	UDiscordState();
+	~UDiscordState();
 
-	FOnDiscordSimple EventOnUpdateCurrentUser;
+	UPROPERTY(BlueprintAssignable, Category = Events)
+		FOnDiscordSimple EventOnUpdateCurrentUser;
 
 	void initialize(int64_t clientId);
 
 	bool isValid() const;
 
-	void pollCallbacks();
+	DiscordResult pollCallbacks();
 
+	void outputLog(discord::LogLevel level, const char* message);
 	void onCurrentUserUpdate();
 
 };

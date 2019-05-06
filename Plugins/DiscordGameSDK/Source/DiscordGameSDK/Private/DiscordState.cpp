@@ -2,39 +2,44 @@
 
 #include "DiscordGameSDK.h"
 
+UDiscordState::UDiscordState()
+	: UObject()
+{
+	mpCore = nullptr;
+}
+
+UDiscordState::~UDiscordState()
+{
+	if (mpCore != nullptr)
+	{
+		delete mpCore;
+		mpCore = nullptr;
+	}
+}
+
 void UDiscordState::initialize(int64_t clientId)
 {
-	discord::Core *pCore = nullptr;
-	discord::Result result = discord::Core::Create(clientId, DiscordCreateFlags_Default, &pCore);
-	if (pCore == nullptr)
+	discord::Result result = discord::Core::Create(clientId,
+		DiscordCreateFlags_Default, &mpCore);
+	
+	UE_LOG(LogDiscord, Log, TEXT("Initialized discord core, result: %i"), result);
+	
+	if (mpCore == nullptr)
 	{
 		UE_LOG(LogDiscord, Error, TEXT("Failed to instantiate Discord handshake"));
 		return;
 	}
 
-	mpCore = MakeShareable(pCore);
-
-	mpCore->SetLogHook(discord::LogLevel::Debug,
-		[](discord::LogLevel level, const char* message)
-		{
-			switch (level)
-			{
-			case discord::LogLevel::Error:
-				UE_LOG(LogDiscord, Error, TEXT("%s"), message);
-				break;
-			case discord::LogLevel::Warn:
-				UE_LOG(LogDiscord, Warning, TEXT("%s"), message);
-				break;
-			case discord::LogLevel::Info:
-				UE_LOG(LogDiscord, Log, TEXT("%s"), message);
-				break;
-			case discord::LogLevel::Debug:
-				UE_LOG(LogDiscord, Log, TEXT("[DEBUG] %s"), message);
-				break;
-			}
-		}
+	auto logFunc = std::bind(
+		&UDiscordState::outputLog,
+		this, std::placeholders::_1, std::placeholders::_2
 	);
+	mpCore->SetLogHook(discord::LogLevel::Error, logFunc);
+	mpCore->SetLogHook(discord::LogLevel::Warn, logFunc);
+	mpCore->SetLogHook(discord::LogLevel::Info, logFunc);
+	mpCore->SetLogHook(discord::LogLevel::Debug, logFunc);
 
+	UE_LOG(LogDiscord, Log, TEXT("Attempting to connect with discord"));
 	mpCore->UserManager().OnCurrentUserUpdate.Connect(std::bind(
 		&UDiscordState::onCurrentUserUpdate, this));
 	
@@ -42,13 +47,40 @@ void UDiscordState::initialize(int64_t clientId)
 
 bool UDiscordState::isValid() const
 {
-	return mpCore.IsValid();
+	return mpCore != nullptr;
 }
 
-void UDiscordState::pollCallbacks()
+DiscordResult UDiscordState::pollCallbacks()
 {
-	if (!mpCore.IsValid()) return;
-	mpCore->RunCallbacks();
+	if (!isValid())
+	{
+		UE_LOG(LogDiscord, Warning, TEXT("Cannot poll for discord updates without initialization"));
+		return DiscordResult::NotRunning;
+	}
+
+	auto result = mpCore->RunCallbacks();
+	if (result != discord::Result::Ok)
+		UE_LOG(LogDiscord, Warning, TEXT("Encountered non-ok discord result %i"), result);
+	return (DiscordResult)result;
+}
+
+void UDiscordState::outputLog(discord::LogLevel level, const char* message)
+{
+	switch (level)
+	{
+	case discord::LogLevel::Error:
+		UE_LOG(LogDiscord, Error, TEXT("%s"), message);
+		break;
+	case discord::LogLevel::Warn:
+		UE_LOG(LogDiscord, Warning, TEXT("%s"), message);
+		break;
+	case discord::LogLevel::Info:
+		UE_LOG(LogDiscord, Log, TEXT("%s"), message);
+		break;
+	case discord::LogLevel::Debug:
+		UE_LOG(LogDiscord, Log, TEXT("[DEBUG] %s"), message);
+		break;
+	}
 }
 
 void UDiscordState::onCurrentUserUpdate()

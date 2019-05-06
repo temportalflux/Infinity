@@ -4,6 +4,7 @@
 
 #include "CoreMinimal.h"
 #include "Kismet/BlueprintFunctionLibrary.h"
+#include "DiscordEnums.h"
 #include "DiscordFunctionLibrary.generated.h"
 
 /**
@@ -16,7 +17,7 @@ class DISCORDGAMESDK_API UDiscordFunctionLibrary : public UBlueprintFunctionLibr
 
 public:
 
-	UFUNCTION(BlueprintCallable, Category = Discord)
+	UFUNCTION(BlueprintPure, Category = Discord)
 		static class UDiscordState* GetDiscordState(bool &valid);
 
 	UFUNCTION(BlueprintCallable, Category = Discord)
@@ -26,6 +27,6 @@ public:
 		static bool DiscordHasBeenInitialized();
 
 	UFUNCTION(BlueprintCallable, Category = Discord)
-		static void DiscordPollCallbacks();
+		static DiscordResult DiscordPollCallbacks();
 	
 };

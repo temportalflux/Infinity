@@ -9,7 +9,7 @@ DEFINE_LOG_CATEGORY(LogDiscord);
 void FDiscordGameSDKModule::StartupModule()
 {
 	// This code will execute after your module is loaded into memory; the exact timing is specified in the .uplugin file per-module
-	
+	mDiscord = MakeShareable(NewObject<UDiscordState>());
 }
 
 void FDiscordGameSDKModule::ShutdownModule()
