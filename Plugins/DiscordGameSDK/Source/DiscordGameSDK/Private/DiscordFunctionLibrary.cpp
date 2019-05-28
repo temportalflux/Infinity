@@ -4,16 +4,22 @@
 
 #include "DiscordGameSDK.h"
 
-UDiscordState* UDiscordFunctionLibrary::GetDiscordState(bool &valid)
+UDiscordState* UDiscordFunctionLibrary::CreateDiscordState()
 {
-	valid = false;
+	return NewObject<UDiscordState>();
+}
+
+/*
+UDiscordState* UDiscordFunctionLibrary::GetDiscordState(bool &initialized)
+{
+	initialized = false;
 	if (!FDiscordGameSDKModule::IsAvailable())
 	{
 		UE_LOG(LogDiscord, Warning, TEXT("Discord module not available"));
 		return nullptr;
 	}
 	auto state = FDiscordGameSDKModule::Get().getState();
-	valid = state.IsValid();
+	initialized = state.Pin()->isInitialized();
 	return state.Pin().Get();
 }
 
@@ -30,7 +36,7 @@ void UDiscordFunctionLibrary::DiscordInitialize(int64 clientId)
 bool UDiscordFunctionLibrary::DiscordHasBeenInitialized()
 {
 	return FDiscordGameSDKModule::IsAvailable()
-		&& FDiscordGameSDKModule::Get().getState().Pin()->isValid();
+		&& FDiscordGameSDKModule::Get().getState().Pin()->isInitialized();
 }
 
 DiscordResult UDiscordFunctionLibrary::DiscordPollCallbacks()
@@ -42,4 +48,4 @@ DiscordResult UDiscordFunctionLibrary::DiscordPollCallbacks()
 	}
 	return FDiscordGameSDKModule::Get().getState().Pin()->pollCallbacks();
 }
-
+//*/

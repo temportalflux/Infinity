@@ -17,8 +17,12 @@ class DISCORDGAMESDK_API UDiscordFunctionLibrary : public UBlueprintFunctionLibr
 
 public:
 
+	UFUNCTION(BlueprintCallable, Category = Discord)
+		static UDiscordState* CreateDiscordState();
+
+	/*
 	UFUNCTION(BlueprintPure, Category = Discord)
-		static class UDiscordState* GetDiscordState(bool &valid);
+		static class UDiscordState* GetDiscordState(bool &initialized);
 
 	UFUNCTION(BlueprintCallable, Category = Discord)
 		static void DiscordInitialize(int64 clientID);
@@ -28,5 +32,6 @@ public:
 
 	UFUNCTION(BlueprintCallable, Category = Discord)
 		static DiscordResult DiscordPollCallbacks();
+	//*/
 	
 };

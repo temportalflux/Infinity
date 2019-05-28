@@ -3,32 +3,55 @@
 #include "CoreMinimal.h"
 #include "./discordsdk/discord.h"
 #include "DiscordEnums.h"
+#include "DiscordUser.h"
 #include "DiscordState.generated.h"
 
 DECLARE_DYNAMIC_MULTICAST_DELEGATE(FOnDiscordSimple);
+DECLARE_DYNAMIC_MULTICAST_DELEGATE_OneParam(FOnDiscordUser, FDiscordUser, user);
 
-UCLASS()
+UCLASS(Blueprintable)
 class UDiscordState : public UObject
 {
 	GENERATED_BODY()
 
 	discord::Core *mpCore;
-	discord::User mCurrentUser;
+	discord::Result mLastResult;
 
+	// Events ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+public:
+
+	UPROPERTY(BlueprintAssignable, Category = Events)
+		FOnDiscordUser EventTmpOnUpdateCurrentUser;
+
+	// Management ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 public:
 	UDiscordState();
 	~UDiscordState();
 
-	UPROPERTY(BlueprintAssignable, Category = Events)
-		FOnDiscordSimple EventOnUpdateCurrentUser;
+	UFUNCTION(BlueprintCallable)
+		DiscordResult Initialize(int64 clientId);
 
-	void initialize(int64_t clientId);
+	UFUNCTION(BlueprintPure)
+		bool IsInitialized() const;
 
-	bool isValid() const;
+	UFUNCTION(BlueprintCallable)
+		DiscordResult PollCallbacks();
 
-	DiscordResult pollCallbacks();
+	UFUNCTION(BlueprintPure)
+		DiscordResult GetLastResult() const;
+
+private:
 
 	void outputLog(discord::LogLevel level, const char* message);
+	
+	// User ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+public:
+
+	UFUNCTION(BlueprintPure, Category = User)
+		FDiscordUser GetCurrentUser(bool& valid);
+
+private:
+
 	void onCurrentUserUpdate();
 
 };

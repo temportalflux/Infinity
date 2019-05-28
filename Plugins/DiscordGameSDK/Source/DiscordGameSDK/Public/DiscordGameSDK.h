@@ -11,9 +11,6 @@ DECLARE_LOG_CATEGORY_EXTERN(LogDiscord, Log, All);
 class FDiscordGameSDKModule : public IModuleInterface
 {
 
-private:
-	TSharedPtr<UDiscordState> mDiscord;
-
 public:
 
 	/** IModuleInterface implementation */
@@ -39,12 +36,6 @@ public:
 	static inline bool IsAvailable()
 	{
 		return FModuleManager::Get().IsModuleLoaded("DiscordGameSDK");
-	}
-
-	
-	TWeakPtr<UDiscordState> getState()
-	{
-		return TWeakPtr<UDiscordState>(mDiscord);
 	}
 	
 };
