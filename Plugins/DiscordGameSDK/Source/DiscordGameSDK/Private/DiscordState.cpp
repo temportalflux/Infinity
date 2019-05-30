@@ -2,16 +2,26 @@
 
 #include "DiscordGameSDK.h"
 
+// START MACRO: Initialization check
+#define INITIALIZED_GUARD(action) if (!IsInitialized()) \
+{ \
+	UE_LOG(LogDiscord, Warning, TEXT("Cannot " action " without initialization")); \
+	return DiscordResult::NotRunning; \
+}
+// END MACRO
+
 UDiscordState::UDiscordState()
 	: UObject()
 {
 	mpCore = nullptr;
-	EventTmpOnUpdateCurrentUser.Clear();
+	EventOnUpdateCurrentUser.Clear();
+	EventOnReceivedUserById.Clear();
 }
 
 UDiscordState::~UDiscordState()
 {
-	EventTmpOnUpdateCurrentUser.Clear();
+	EventOnUpdateCurrentUser.Clear();
+	EventOnReceivedUserById.Clear();
 	if (mpCore != nullptr)
 	{
 		delete mpCore;
@@ -72,12 +82,7 @@ bool UDiscordState::IsInitialized() const
 
 DiscordResult UDiscordState::PollCallbacks()
 {
-	if (!IsInitialized())
-	{
-		UE_LOG(LogDiscord, Warning, TEXT("Cannot poll for discord updates without initialization"));
-		return DiscordResult::NotRunning;
-	}
-
+	INITIALIZED_GUARD("poll for discord updates")
 	mLastResult = mpCore->RunCallbacks();
 	return (DiscordResult)mLastResult;
 }
@@ -106,6 +111,31 @@ DiscordResult UDiscordState::GetLastResult() const
 	return (DiscordResult)mLastResult;
 }
 
+FDiscordUser UDiscordState::createUserFromDiscord(discord::User const &user) const
+{
+	return FDiscordUser {
+			user.GetId(),
+			FString(user.GetUsername()),
+			FCString::Atoi(*FString(user.GetDiscriminator())),
+			FString(user.GetAvatar()),
+	};
+}
+
+FDiscordUser UDiscordState::GetCurrentUser(bool& valid) const
+{
+	valid = false;
+	discord::User currentUser;
+	auto result = mpCore->UserManager().GetCurrentUser(&currentUser);
+
+	if (result != discord::Result::Ok)
+	{
+		return {};
+	}
+
+	valid = true;
+	return createUserFromDiscord(currentUser);
+}
+
 void UDiscordState::onCurrentUserUpdate()
 {
 	bool userValid = false;
@@ -113,30 +143,26 @@ void UDiscordState::onCurrentUserUpdate()
 	UE_LOG(LogDiscord, Log, TEXT("Updated current discord user to %s#%i"),
 		*user.username, user.descriminator
 	);
-	if (userValid && this->EventTmpOnUpdateCurrentUser.IsBound())
+	if (userValid && this->EventOnUpdateCurrentUser.IsBound())
 	{
-		this->EventTmpOnUpdateCurrentUser.Broadcast(user);
+		this->EventOnUpdateCurrentUser.Broadcast(user);
 	}
 }
 
-FDiscordUser UDiscordState::GetCurrentUser(bool& valid)
+DiscordResult UDiscordState::FetchUserById(int64 const id)
 {
-	valid = false;
-	discord::User currentUser;
-	auto result = mpCore->UserManager().GetCurrentUser(&currentUser);
-	
-	if (result != discord::Result::Ok)
+	INITIALIZED_GUARD("fetch user from id");
+	mpCore->UserManager().GetUser(discord::UserId(id), std::bind(
+		&UDiscordState::onReceivedUserFetch, this,
+		std::placeholders::_1, std::placeholders::_2
+	));
+	return DiscordResult::Ok; // TODO: tell user that action is in callback
+}
+
+void UDiscordState::onReceivedUserFetch(discord::Result result, discord::User const &user)
+{
+	if (result == discord::Result::Ok && this->EventOnReceivedUserById.IsBound())
 	{
-		return {};
+		this->EventOnReceivedUserById.Broadcast(createUserFromDiscord(user));
 	}
-
-	valid = true;
-	FDiscordUser user = {
-		currentUser.GetId(),
-		FString(currentUser.GetUsername()),
-		FCString::Atoi(*FString(currentUser.GetDiscriminator())),
-		FString(currentUser.GetAvatar()),
-	};
-
-	return user;
 }

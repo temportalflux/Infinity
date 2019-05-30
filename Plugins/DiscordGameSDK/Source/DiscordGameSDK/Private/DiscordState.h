@@ -21,7 +21,10 @@ class UDiscordState : public UObject
 public:
 
 	UPROPERTY(BlueprintAssignable, Category = Events)
-		FOnDiscordUser EventTmpOnUpdateCurrentUser;
+		FOnDiscordUser EventOnUpdateCurrentUser;
+
+	UPROPERTY(BlueprintAssignable, Category = Events)
+		FOnDiscordUser EventOnReceivedUserById;
 
 	// Management ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 public:
@@ -48,10 +51,17 @@ private:
 public:
 
 	UFUNCTION(BlueprintPure, Category = User)
-		FDiscordUser GetCurrentUser(bool& valid);
+		FDiscordUser GetCurrentUser(bool& valid) const;
+
+	UFUNCTION(BlueprintCallable, Category = User)
+		DiscordResult FetchUserById(int64 const id);
 
 private:
 
+	FDiscordUser createUserFromDiscord(discord::User const &user) const;
+
 	void onCurrentUserUpdate();
+	
+	void onReceivedUserFetch(discord::Result result, discord::User const &user);
 
 };
