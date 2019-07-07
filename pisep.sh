@@ -1,0 +1,2 @@
+#!/bin/bash
+"C:\Program Files\Epic Games\UE_4.22\Engine\Binaries\Win64\UE4Editor.exe" "D:\Desktop\Infinity\Infinity.uproject" -game -NoEAC -stdout -AllowStdOutLogVerbosity -messaging RunConfig=DebugGame -debug -WINDOWED

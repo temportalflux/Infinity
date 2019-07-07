@@ -1,0 +1,29 @@
+{
+  "FileVersion": 3,
+  "Version": 1,
+  "VersionName": "1.0",
+  "FriendlyName": "OnlineSubsystemDiscord",
+  "Description": "",
+  "Category": "Other",
+  "CreatedBy": "",
+  "CreatedByURL": "",
+  "DocsURL": "",
+  "MarketplaceURL": "",
+  "SupportURL": "",
+  "CanContainContent": true,
+  "IsBetaVersion": false,
+  "Installed": true,
+  "Modules": [
+    {
+      "Name": "OnlineSubsystemDiscord",
+      "Type": "Developer",
+      "LoadingPhase": "Default"
+    }
+  ],
+  "Plugins": [
+    {
+      "Name": "OnlineSubsystem",
+      "Enabled": true
+    }
+  ]
+}

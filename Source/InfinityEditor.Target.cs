@@ -9,5 +9,5 @@ public class InfinityEditorTarget : TargetRules
 	{
 		Type = TargetType.Editor;
 		ExtraModuleNames.Add("Infinity");
-	}
+    }
 }

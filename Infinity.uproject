@@ -19,7 +19,7 @@
       "Enabled": true
     },
     {
-      "Name": "DiscordGameSDK",
+      "Name": "OnlineSubsystemDiscord",
       "Enabled": true
     }
   ]
